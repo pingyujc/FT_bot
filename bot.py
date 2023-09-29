@@ -2,6 +2,7 @@
 import os
 from dotenv import load_dotenv
 import requests
+from web3 import Web3
 
 
 
@@ -34,7 +35,10 @@ def make_api_url(module, action, address, tag, apikey):
     return url
 
 # try getting the balance
-get_balance_url = make_api_url("account", "balance", FT_ADDRESS, "latest", BASESCAN_API_KEY)
+input_address = input("please enter address: ")
+# get_balance_url = make_api_url("account", "balance", FT_ADDRESS, "latest", BASESCAN_API_KEY)
+
+get_balance_url = make_api_url("account", "balance", input_address, "latest", BASESCAN_API_KEY)
 
 
 def run_api(url):
@@ -50,4 +54,22 @@ def run_api(url):
 
 print("This is a FriendTech Arbitrage bot... \n")
 run_api(get_balance_url)
+
+# Initialize a Web3 instance for the Base mainnet
+w3 = Web3(Web3.HTTPProvider('https://base-mainnet.g.alchemy.com/v2/oak_cR7DLscbD9el9XMEEesA_HYD1Ov6'))
+
+# Check if connected to the Base network
+if not w3.is_connected():
+    raise Exception("Not connected to Base network")
+else:
+    print("Connected to Base network")
+
+# get the latest block number
+block_number = w3.eth.block_number
+print(block_number)
+
+# get the latest block info
+block = w3.eth.get_block('latest')
+print(block)
+
 
