@@ -23,17 +23,9 @@ def make_api_url(module, action, address, tag, apikey):
     return url
 
 
-# try getting the balance
-input_address = input("please enter address: ")
-# get_balance_url = make_api_url("account", "balance", FT_ADDRESS, "latest", BASESCAN_API_KEY)
-get_balance_url = make_api_url(
-    "account", "balance", input_address, "latest", BASESCAN_API_KEY
-)
-
-
 def run_api(url):
     # HTTP call
-    response = requests.get(get_balance_url)
+    response = requests.get(url)
     # api call was successful if we get code 200
     if response.status_code == 200:
         data = response.json()
@@ -42,6 +34,18 @@ def run_api(url):
         print(f"Balance: {data} eth")
 
 
-print("Searching for the balance...")
+def get_balance(address):
+    get_balance_url = make_api_url(
+        "account", "balance", address, "latest", BASESCAN_API_KEY
+    )
+    run_api(get_balance_url)
 
-run_api(get_balance_url)
+
+def main():
+    # try getting the balance
+    input_address = input("please enter address: ")
+    get_balance(input_address)
+
+
+if __name__ == "__main__":
+    main()
