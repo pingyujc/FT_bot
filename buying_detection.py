@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import requests
 from web3 import Web3
 import time
+from tg import send_telegram_message
+import base_api
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,22 +30,6 @@ def wei_to_eth(amount):
     eth_amount = "{:.6f}".format(eth_amount)
     eth_amount = float(eth_amount)
     return eth_amount
-
-
-# function to send a telegram message
-def send_telegram_message(mess):
-    # The message that will be sent
-    message = mess
-
-    # setting up the url
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
-
-    # send it
-    try:
-        requests.get(url)
-        # print("message sent")
-    except:
-        print("message failed to sent")
 
 
 # connect to base mainnet
@@ -90,18 +76,27 @@ def scan_one_block(block_num, w3):
             print("buy share")
             buyer = tx["from"]
             price = wei_to_eth(tx["value"])
-            # print("buying price:", price)
+            # get the room owner, the key that is being bought
+            room = base_api.get_room_owner(tx_hash.hex())
+
             if price < 0.01 or price > 0.15:
                 continue
-
+            print("buying price:", price)
+            print("key address:", room)
+            # the message sending to tg
             message = f"Buyer {buyer} is buying share.\n"
             message += f"Share price: {price} eth"
 
-            send_telegram_message(message)
+            # for key in tx:
+            #     print(key)
+
+            # send_telegram_message(message)
         elif method_ID == selling_share:
             seller = tx["from"]
             print("sell share")
-            send_telegram_message(f"Seller {seller} is selling share")
+            # print(tx)
+
+            # send_telegram_message(f"Seller {seller} is selling share")
 
         # print(f"method ID: {method_ID}")
 
@@ -110,12 +105,12 @@ def main():
     # connect first
     w3 = connect_to_base()
 
-    # scan_one_block(4667777, w3)  # 7 tx
-    while True:
-        newest = w3.eth.block_number
-        scan_one_block(newest, w3)
+    scan_one_block(4892800, w3)  # 12 tx
+    # while True:
+    #     newest = w3.eth.block_number
+    #     scan_one_block(newest, w3)
 
-        time.sleep(2)
+    #     time.sleep(2)
 
 
 if __name__ == "__main__":

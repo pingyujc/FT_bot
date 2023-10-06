@@ -7,9 +7,10 @@ from telegram import Bot
 load_dotenv()
 # Replace 'YOUR_BOT_TOKEN' with the actual token you received from BotFather
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv('CHAT_ID')
+CHAT_ID = os.getenv("CHAT_ID")
 
 
+# function to send a telegram message
 def send_telegram_message(mess):
     # The message that will be sent
     message = mess
@@ -20,8 +21,6 @@ def send_telegram_message(mess):
     # send it
     try:
         requests.get(url)
-        print("message sent")
+        # print("message sent")
     except:
         print("message failed to sent")
-
-

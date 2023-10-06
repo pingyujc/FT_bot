@@ -1,7 +1,8 @@
 # goals:
-# users enter address that they want to track
+# users enter username
 # will tell users if that address is valid (on FT or not)
 # will give some information too
+# give FT room link, twitter link, twitter followers maybe, wallet balance
 # it will then start tracking all actions, including:
 # buy/sell/deposit/withdraw
 
@@ -11,7 +12,7 @@ from dotenv import load_dotenv
 import requests
 from web3 import Web3
 import time
-import api_balance
+import base_api
 
 # Load environment variables from .env file
 load_dotenv()
@@ -75,54 +76,20 @@ def connect_to_base():
     return w3
 
 
-def scan_one_block(block_num, w3):
-    block = w3.eth.get_block(block_num)
-    print("BLOCK NUMBER:", block_num)
-    for tx_hash in block["transactions"]:
-        # get the transaction
-        tx = w3.eth.get_transaction(tx_hash)
-        # print(f"tx: {tx} \n")
-
-        # get the transaction receipt to check if failed
-        tx_receipt = w3.eth.get_transaction_receipt(tx_hash)
-
-        # status code is 0, it failed
-        if tx_receipt["status"] == 0:
-            # print("failed")
-            continue
-
-        # decode the tx data
-        input_data = tx["input"]
-        # get the method ID to filter
-        # transformed to hex, and get the first 10 letters only
-        method_ID = input_data[:10].hex()[:10]
-
-        if method_ID == buying_share:
-            print("buy share")
-            buyer = tx["from"]
-            price = wei_to_eth(tx["value"])
-            # print("buying price:", price)
-            if price < 0.01 or price > 0.15:
-                continue
-
-            message = f"Buyer {buyer} is buying share.\n"
-            message += f"Share price: {price} eth"
-
-            send_telegram_message(message)
-        elif method_ID == selling_share:
-            seller = tx["from"]
-            print("sell share")
-            send_telegram_message(f"Seller {seller} is selling share")
-
-        # print(f"method ID: {method_ID}")
-
-
 # this function should start tracking one address
 # return some info about this address
 # balance, FT link, twitter link
 def add_to_list(address):
-    api_balance.get_balance(address)
+    print("_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n")
+    print(f"Adding {address} to the tracking list...")
+    base_api.get_balance(address)
     watching_address.append(address)
+
+    print("_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n")
+
+
+# FT API and
+# def make_url_FT()
 
 
 def main():
@@ -140,12 +107,26 @@ def main():
         else:
             break
 
-    add_to_list("0x1915AeC600e892614d00f6125A570a6bfCfdFFCA")
+    # add_to_list("0x1915AeC600e892614d00f6125A570a6bfCfdFFCA")
 
-    print("_____________________________ \n")
+    print("RESULTS:")
     print("The addresses on the list so far:")
     for address in watching_address:
         print(address)
+
+    # response = requests.get(
+    #     "https://prod-api.kosetto.com/pingyujc/0x1915aec600e892614d00f6125a570a6bfcfdffca"
+    # )
+    response = requests.get(
+        "https://prod-api.kosetto.com/portfolio/0x1915aec600e892614d00f6125a570a6bfcfdffca&auth=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyZXNzIjoiMHgxOTE1YWVjNjAwZTg5MjYxNGQwMGY2MTI1YTU3MGE2YmZjZmRmZmNhIiwiaWF0IjoxNjk0OTE0MDk1LCJleHAiOjE2OTc1MDYwOTV9.mBOPtXVnnpi-BSPXsMcw15Q0a8D04QPsDXohDuPHFoc"
+    )
+    # api call was successful if we get code 200
+    if response.status_code == 200:
+        data = response.json()
+        # 1 eth  = 10**18 wei
+        print(data)
+    else:
+        print(response.status_code)
 
 
 if __name__ == "__main__":

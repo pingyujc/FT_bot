@@ -26,25 +26,48 @@ def make_api_url(module, action, address, tag, apikey):
 def run_api(url):
     # HTTP call
     response = requests.get(url)
+
     # api call was successful if we get code 200
     if response.status_code == 200:
         data = response.json()
-        # 1 eth  = 10**18 wei
-        data = int(data["result"]) / 10**18
-        print(f"Balance: {data} eth")
+
+        # we just return the result, process in other functions
+        return data["result"]
 
 
 def get_balance(address):
     get_balance_url = make_api_url(
         "account", "balance", address, "latest", BASESCAN_API_KEY
     )
-    run_api(get_balance_url)
+    data = run_api(get_balance_url)
+    data = int(data) / 10**18
+    print(f"Balance: {data} eth")
+
+
+# this function look at the internal tx and see where the eth is going to
+# will print out the address that is being bought
+# example: pingyu is buying kenshiro's key, this function will return kenshiro
+def get_room_owner(hash):
+    # here is setting up the api for getting internal tx
+    url = "https://api.basescan.org/api"
+    url += (
+        f"?module=account&action=txlistinternal&txhash={hash}&apikey={BASESCAN_API_KEY}"
+    )
+    data = run_api(url)
+
+    room_owner = data[1]["to"]
+    # print(f"Room owner is {room_owner}")
+    return room_owner
 
 
 def main():
     # try getting the balance
     input_address = input("please enter address: ")
     get_balance(input_address)
+
+    input_hash = input("input buy share hash to check out the room owner")
+
+    get_room_owner(input_hash)
 
 
 if __name__ == "__main__":
