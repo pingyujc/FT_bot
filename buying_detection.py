@@ -68,35 +68,60 @@ def scan_one_block(block_num, w3):
 
         # decode the tx data
         input_data = tx["input"]
+
+        # the address that is executing this action
+        address = tx["from"]
+
+        # only tracking whale so far: balance more than 1 eth
+        balance = base_api.get_balance(address)
+        if balance < 1:
+            continue
+
         # get the method ID to filter
         # transformed to hex, and get the first 10 letters only
         method_ID = input_data[:10].hex()[:10]
 
         if method_ID == buying_share:
             print("buy share")
-            buyer = tx["from"]
+            buyer = address
+            buyerlink = "https://www.friend.tech/rooms/" + buyer
             price = wei_to_eth(tx["value"])
             # get the room owner, the key that is being bought
-            room = base_api.get_room_owner(tx_hash.hex())
+            try:
+                room = base_api.get_room_owner(tx_hash.hex())
+                keylink = "https://www.friend.tech/rooms/" + room
+            except:
+                keylink = "failed to get key link"
+
+            # keylink = "https://www.friend.tech/rooms/" + room
 
             if price < 0.01 or price > 0.15:
                 continue
             print("buying price:", price)
             print("key address:", room)
+
+            # check if it is self buying
+            if buyerlink == keylink:
+                message = "\U0001F6A8 WHALE SELF BUYING ALERT \U0001F6A8\n"
+            else:
+                message = "\U0001F6A8 WHALE BUYING ALERT \U0001F6A8\n"
+
             # the message sending to tg
-            message = f"Buyer {buyer} is buying share.\n"
-            message += f"Share price: {price} eth"
+            message += f"Buyer: {buyerlink} \n"
+            message += f"Wallet balance: {balance} eth\n"
+            message += f"Share price: {price} eth\n"
+            message += f"Key: {keylink}"
 
             # for key in tx:
             #     print(key)
 
-            # send_telegram_message(message)
-        elif method_ID == selling_share:
-            seller = tx["from"]
-            print("sell share")
-            # print(tx)
+            send_telegram_message(message)
+        # elif method_ID == selling_share:
+        #     seller = tx["from"]
+        #     print("sell share")
+        # print(tx)
 
-            # send_telegram_message(f"Seller {seller} is selling share")
+        # send_telegram_message(f"Seller {seller} is selling share")
 
         # print(f"method ID: {method_ID}")
 
@@ -105,12 +130,12 @@ def main():
     # connect first
     w3 = connect_to_base()
 
-    scan_one_block(4892800, w3)  # 12 tx
-    # while True:
-    #     newest = w3.eth.block_number
-    #     scan_one_block(newest, w3)
+    # scan_one_block(5008508, w3)
+    while True:
+        newest = w3.eth.block_number
+        scan_one_block(newest, w3)
 
-    #     time.sleep(2)
+    time.sleep(2)
 
 
 if __name__ == "__main__":

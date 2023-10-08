@@ -26,22 +26,29 @@ def make_api_url(module, action, address, tag, apikey):
 def run_api(url):
     # HTTP call
     response = requests.get(url)
+    # print(url)
+    # print(response)
 
     # api call was successful if we get code 200
     if response.status_code == 200:
         data = response.json()
+        # print(data)
+        # print(data["result"])
 
         # we just return the result, process in other functions
+        print(data["result"])
         return data["result"]
 
 
+# return the eth balance in the wallet
 def get_balance(address):
     get_balance_url = make_api_url(
         "account", "balance", address, "latest", BASESCAN_API_KEY
     )
     data = run_api(get_balance_url)
     data = int(data) / 10**18
-    print(f"Balance: {data} eth")
+    # print(f"Balance: {data} eth")
+    return data
 
 
 # this function look at the internal tx and see where the eth is going to
@@ -54,6 +61,7 @@ def get_room_owner(hash):
         f"?module=account&action=txlistinternal&txhash={hash}&apikey={BASESCAN_API_KEY}"
     )
     data = run_api(url)
+    # print(data)
 
     room_owner = data[1]["to"]
     # print(f"Room owner is {room_owner}")
