@@ -6,6 +6,7 @@ from web3 import Web3
 import time
 from tg import send_telegram_message
 import base_api
+import csv
 
 # Load environment variables from .env file
 load_dotenv()
@@ -72,9 +73,9 @@ def scan_one_block(block_num, w3):
         # the address that is executing this action
         address = tx["from"]
 
-        # only tracking whale so far: balance more than 1 eth
+        # only tracking whale so far: balance more than 10 eth
         balance = base_api.get_balance(address)
-        if balance < 1:
+        if balance < 10:
             continue
 
         # get the method ID to filter
@@ -116,6 +117,14 @@ def scan_one_block(block_num, w3):
             #     print(key)
 
             send_telegram_message(message)
+
+            # Get the current timestamp
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+            # Write the message to the CSV file
+            with open("history.csv", "a", newline="") as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerow([timestamp, buyer, price, keylink])
         # elif method_ID == selling_share:
         #     seller = tx["from"]
         #     print("sell share")
@@ -129,13 +138,15 @@ def scan_one_block(block_num, w3):
 def main():
     # connect first
     w3 = connect_to_base()
-
-    # scan_one_block(5008508, w3)
+    with open("history.csv", "a", newline="") as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(["Time", "Buyer Address", "Key Price", "FT link"])
+    # scan_one_block(5023068, w3)
     while True:
         newest = w3.eth.block_number
         scan_one_block(newest, w3)
 
-    time.sleep(2)
+    # time.sleep(2)
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ def run_api(url):
         # print(data["result"])
 
         # we just return the result, process in other functions
-        print(data["result"])
+        # print(data["result"])
         return data["result"]
 
 
